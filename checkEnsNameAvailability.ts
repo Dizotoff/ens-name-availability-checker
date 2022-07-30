@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const checkEnsNameAvailability = async () => {  
+ const checkEnsNameAvailability = async () => {  
 
   // get the data from the file with just words starting from the new line (.csv like)
   const data = fs.readFileSync("./itemsToCheck.txt", "UTF-8");
@@ -36,8 +36,10 @@ const checkEnsNameAvailability = async () => {
   for (const chunk of chunks) {
     const availability = await checkOwner(chunk);
     const notAvailable = availability.data.domains.map((d) => d.name);
-    const available = await findAvaliable(chunk, notAvailable);
-    
+    const available = chunk.filter(
+    (name) => !notAvailable.includes(name)
+  );
+        
     // Slow down to public API not to kick us
     await new Promise((resolve) => setTimeout(resolve, 1000));
     available.push("");
@@ -49,8 +51,6 @@ const checkEnsNameAvailability = async () => {
     counter++;
   }
 };
-
-export default upsertCollection;
 
 //creates graphql request to public ens graphql api
 const checkOwner = async (data: string[]) => {
@@ -77,12 +77,3 @@ const checkOwner = async (data: string[]) => {
   return json;
 };
 
-const findAvaliable = async (
-  totalNames: string[],
-  notAvailableNames: string[]
-) => {
-  const available = totalNames.filter(
-    (name) => !notAvailableNames.includes(name)
-  );
-  return available;
-};
